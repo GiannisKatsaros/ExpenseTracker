@@ -1,6 +1,8 @@
 import bs4 as bs
 import re
 from email.header import decode_header
+from datetime import datetime
+from decimal import Decimal
 
 
 # todo add try except on find next
@@ -56,14 +58,17 @@ class HtmlCrawlService:
                     .text.strip()
                 )
 
-                return (
-                    account_number,
-                    transaction_amount,
-                    transaction_type,
-                    execution_date,
-                    value_date,
-                    ledger_balance,
-                    available_balance,
-                    sender,
-                    payment_type,
-                )
+                return {
+                    "account": account_number,
+                    "amount": Decimal(transaction_amount.split()[0]),
+                    "currency": transaction_amount.split()[1],
+                    "transactionType": transaction_type,
+                    "transactionDate": datetime.strptime(
+                        execution_date, "%d/%m/%y %H:%M"
+                    ),
+                    "valueDate": datetime.strptime(value_date, "%d/%m/%Y").date(),
+                    "logisticBalance": Decimal(ledger_balance.split()[0]),
+                    "availableBalance": Decimal(available_balance.split()[0]),
+                    "description1": sender,
+                    "description2": payment_type,
+                }

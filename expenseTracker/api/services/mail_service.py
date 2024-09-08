@@ -1,6 +1,7 @@
 import imaplib
 import os
 import environ
+import email
 
 
 class MailService:
@@ -34,8 +35,8 @@ class MailService:
                 self.login()
             self.mail.select("inbox")
             _, messages = self.mail.search(None, f'(FROM "{search}")')
-            messages = messages[0].split()
-            return messages
+            # messages = messages[0].split()
+            return messages[0].split()
         except Exception as e:
             print(e)
             return []
@@ -46,7 +47,39 @@ class MailService:
             if not self.mail:
                 self.login()
             _, data = self.mail.fetch(email_id, "(RFC822)")
-            return data
+            email_message = email.message_from_bytes(data[0][1])
+            return email_message
+        except Exception as e:
+            print(e)
+            return None
+
+    def mark_as_deleted(self, email_id):
+        """Mark email as deleted"""
+        try:
+            if not self.mail:
+                self.login()
+            self.mail.store(email_id, "+FLAGS", "\\Deleted")
+            # self.mail.expunge()
+            return None
+        except Exception as e:
+            print(e)
+            return None
+
+    def delete_marked_emails(self):
+        try:
+            if not self.mail:
+                self.login()
+            self.mail.expunge()
+            return None
+        except Exception as e:
+            print(e)
+            return None
+
+    def logout(self):
+        try:
+            if self.mail:
+                self.mail.logout()
+            return None
         except Exception as e:
             print(e)
             return None
